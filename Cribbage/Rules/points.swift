@@ -223,11 +223,11 @@ struct PeggingPoints {
         let lastRank = cards.last?.rank
         for i in (0..<cards.count - 1).reversed() {
             if cards[i].rank == lastRank {
-                    pairCount += 1
-                } else {
-                    break
-                }
+                pairCount += 1
+            } else {
+                break
             }
+        }
         if pairCount == 1 {
             points += 2
         } else if pairCount == 2 {
@@ -260,151 +260,4 @@ struct PeggingPoints {
     }
 }
 
-struct PointOverlay: View {
-    @ObservedObject var game: GameState
-    @State private var screen = 1
-    var body: some View {
-        if screen == 1 {
-            ZStack {
-                Text("Your Hand (with cut)")
-                    .font(Font.largeTitle.bold())
-                    .position(x: 500, y: 45)
-                HStack {
-                    ForEach(game.afterPlayerHand, id: \.self) { card in
-                        CardButton(card: card, game: game)
-                    }
-                    .position(x: 97, y: 180)
-                }
-                VStack(alignment: .leading) {
-                    Spacer()
-                    Text("Points from pairs: \(FinalPoints(cards: game.afterPlayerHand).checkPairs())")
-                        .font(Font.title.bold())
-                    Spacer()
-                    Text("Points from runs: \(FinalPoints(cards: game.afterPlayerHand).checkRuns())")
-                        .font(Font.title.bold())
-                    Spacer()
-                    Text("Points from fifteens: \(FinalPoints(cards: game.afterPlayerHand).checkFifteens())")
-                        .font(Font.title.bold())
-                    Spacer()
-                    Text("Point from miscellaneous: \(FinalPoints(cards: game.afterPlayerHand).checkFlush(isCrib: false) + FinalPoints(cards: game.afterPlayerHand).checkNob(cut: game.cut))")
-                        .font(Font.title.bold())
-                    Spacer()
-                }
-                .position(x: 180, y: 350)
-                .frame(height: 400)
-                
-                VStack {
-                    Text("TOTAL")
-                        .bold()
-                    Text("\(FinalPoints(cards: game.afterPlayerHand).finalPoints(cut: game.cut, isCrib: false))")
-                        .font(.system(size: 100))
-                }
-                .position(x: 700, y: 500)
-                
-                Button("Next") {
-                    screen += 1
-                }
-                .buttonStyle(.glass)
-                .position(x: 500, y: 650)
-            }
-            .frame(width: 1000, height: 700)
-            .background(Color.green.opacity(0.7))
-            .clipShape(RoundedRectangle(cornerRadius: 20))
-        }
-        if screen == 2 {
-            ZStack {
-                Text("Bot's hand (with cut)")
-                    .font(Font.largeTitle.bold())
-                    .position(x: 500, y: 45)
-                HStack {
-                    ForEach(game.afterBotHand, id: \.self) { card in
-                        CardButton(card: card, game: game)
-                    }
-                    .position(x: 97, y: 180)
-                }
-                VStack(alignment: .leading) {
-                    Spacer()
-                    Text("Points from pairs: \(FinalPoints(cards: game.afterBotHand).checkPairs())")
-                        .font(Font.title.bold())
-                    Spacer()
-                    Text("Points from runs: \(FinalPoints(cards: game.afterBotHand).checkRuns())")
-                        .font(Font.title.bold())
-                    Spacer()
-                    Text("Points from fifteens: \(FinalPoints(cards: game.afterBotHand).checkFifteens())")
-                        .font(Font.title.bold())
-                    Spacer()
-                    Text("Point from miscellaneous: \(FinalPoints(cards: game.afterBotHand).checkFlush(isCrib: false) + FinalPoints(cards: game.afterBotHand).checkNob(cut: game.cut))")
-                        .font(Font.title.bold())
-                    Spacer()
-                }
-                .position(x: 180, y: 350)
-                .frame(height: 400)
-                
-                VStack {
-                    Text("TOTAL")
-                        .bold()
-                    Text("\(FinalPoints(cards: game.afterBotHand).finalPoints(cut: game.cut, isCrib: false))")
-                        .font(.system(size: 100))
-                }
-                .position(x: 700, y: 500)
-                
-                Button("Next") {
-                    screen += 1
-                }
-                .buttonStyle(.glass)
-                .position(x: 500, y: 650)
-            }
-            .frame(width: 1000, height: 700)
-            .background(Color.green.opacity(0.7))
-            .clipShape(RoundedRectangle(cornerRadius: 20))
-        }
-        if screen == 3 {
-            ZStack {
-                Text(game.playerStarts ? "Your Crib" : "Bot's Crib")
-                    .font(Font.largeTitle.bold())
-                    .position(x: 500, y: 45)
-                HStack {
-                    ForEach(game.crib, id: \.self) { card in
-                        CardButton(card: card, game: game)
-                    }
-                    .position(x: 97, y: 180)
-                }
-                VStack(alignment: .leading) {
-                    Spacer()
-                    Text("Points from pairs: \(FinalPoints(cards: game.crib).checkPairs())")
-                        .font(Font.title.bold())
-                    Spacer()
-                    Text("Points from runs: \(FinalPoints(cards: game.crib).checkRuns())")
-                        .font(Font.title.bold())
-                    Spacer()
-                    Text("Points from fifteens: \(FinalPoints(cards: game.crib).checkFifteens())")
-                        .font(Font.title.bold())
-                    Spacer()
-                    Text("Point from miscellaneous: \(FinalPoints(cards: game.crib).checkFlush(isCrib: true) + FinalPoints(cards: game.crib).checkNob(cut: game.cut))")
-                        .font(Font.title.bold())
-                    Spacer()
-                }
-                .position(x: 180, y: 350)
-                .frame(height: 400)
-                
-                VStack {
-                    Text("TOTAL")
-                        .bold()
-                    Text("\(FinalPoints(cards: game.crib).finalPoints(cut: game.cut, isCrib: true))")
-                        .font(.system(size: 100))
-                }
-                .position(x: 700, y: 500)
-                
-                Button("Next") {
-                    screen = 0
-                    game.reset()
-                }
-                .buttonStyle(.glass)
-                .position(x: 500, y: 650)
-            }
-            .frame(width: 1000, height: 700)
-            .background(Color.green.opacity(0.7))
-            .clipShape(RoundedRectangle(cornerRadius: 20))
-        }
-    }
-}
+

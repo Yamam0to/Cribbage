@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject var game = GameState()
+    @StateObject var network = Connection()
     
     @State private var startButton = true
     @State private var showSlide = false
@@ -58,7 +59,7 @@ struct ContentView: View {
                 }
                 HStack {
                     ForEach(Array(game.playedCards.enumerated()), id: \.element.id) { index, card in
-                        cardNotButton(card: card)
+                        cardNotButton(height: 75, card: card)
                             .offset(x: CGFloat(index) * 10)
                     }
                 }
@@ -122,8 +123,15 @@ struct ContentView: View {
             .position(x: 1100, y: 610)
             
             //overlay
-            if game.pointCountingTime {
-                PointOverlay(game: game)
+            if let type = game.pointCountingTime {
+                switch type {
+                case .player :
+                    PointOverlay(title: "Your Hand (+cut)", cards: game.afterPlayerHand, cut: game.cut, isCrib: false) {game.pointCountingTime = .bot}
+                case .bot :
+                    PointOverlay(title: "Bot's Hand (+cut)", cards: game.afterBotHand, cut: game.cut, isCrib: false) {game.pointCountingTime = .crib}
+                case .crib :
+                    PointOverlay(title: "Crib (+cut)", cards: game.crib, cut: game.cut, isCrib: true) {game.reset()}
+                }
             }
             
         }

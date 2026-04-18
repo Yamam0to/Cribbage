@@ -8,6 +8,13 @@ import Foundation
 import SwiftUI
 import Combine
 
+//point summary
+enum pointSummaryType {
+    case player
+    case bot
+    case crib
+}
+
 class GameState: ObservableObject {
     @Published var playerStarts: Bool = Bool.random()
     @Published var playerHand: [Card] = []
@@ -33,7 +40,7 @@ class GameState: ObservableObject {
     @Published var playerPoints: Int = 0
     @Published var botPoints: Int = 0
     
-    @Published var pointCountingTime: Bool = false
+    @Published var pointCountingTime: pointSummaryType? = nil
     
     
     var isBotThinking = false
@@ -70,7 +77,7 @@ class GameState: ObservableObject {
             discard(card: card)
         } else if playerTurn {
             playerMove(card: card)
-        } else if pointCountingTime {
+        } else if pointCountingTime != nil {
             //
         }
     }
@@ -133,18 +140,18 @@ class GameState: ObservableObject {
                 executeMove(card: card, isPlayer: true)
                 
                 
-                if pegCount == 31 || !canMove(hand: playerHand) && !canMove(hand: botHand) {
+                if pegCount == 31 || !ValidMoves(cards: playerHand, pegCount: pegCount).canMove() && !ValidMoves(cards: botHand, pegCount: pegCount).canMove() {
                     if pegCount < 31 {
                         playerPoints += 1
                     }
                     if playerHand.count == 0 && botHand.count == 0 {
-                        pointCountingTime = true
+                        pointCountingTime = .player
                     }
                     pegCount = 0
                     playedCards = []
                     botMove()
                 } else {
-                    if canMove(hand: botHand) {
+                    if ValidMoves(cards: botHand, pegCount: pegCount).canMove() {
                         botMove()
                     } else {
                         if botHand.count > 0 {
@@ -162,12 +169,12 @@ class GameState: ObservableObject {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                 self.executeMove(card: cardToPlay, isPlayer: false)
                 //reset?
-                if self.pegCount == 31 || !self.canMove(hand: self.playerHand) && !self.canMove(hand: self.botHand) {
+                if self.pegCount == 31 || !ValidMoves(cards: self.playerHand, pegCount: self.pegCount).canMove() && !ValidMoves(cards: self.botHand, pegCount: self.pegCount).canMove() {
                     if self.pegCount < 31 {
                         self.botPoints += 1
                     }
                     if self.playerHand.count == 0 && self.botHand.count == 0 {
-                        self.pointCountingTime = true
+                        self.pointCountingTime = .player
                     }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
                         self.pegCount = 0
@@ -175,17 +182,13 @@ class GameState: ObservableObject {
                     }
                 }
                 
-                if !self.canMove(hand: self.playerHand) && self.canMove(hand: self.botHand) {
+                if !ValidMoves(cards: self.playerHand, pegCount: self.pegCount).canMove() && ValidMoves(cards: self.botHand, pegCount: self.pegCount).canMove() {
                     self.botMove()
                 }
                 self.isBotThinking = false
             }
             
         }
-    }
-    
-    func canMove(hand: [Card]) -> Bool {
-        return hand.contains(where: { $0.rank.value + pegCount <= 31 })
     }
     
     func reset() {
@@ -202,7 +205,7 @@ class GameState: ObservableObject {
         playerStarts.toggle()
         discardRound = 0
         playerTurn = false
-        pointCountingTime = false
+        pointCountingTime = nil
         dealCards()
     }
 }
