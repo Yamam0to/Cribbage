@@ -8,12 +8,13 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject var network = Connection()
+    @EnvironmentObject var connection: Connection
     @State var hand: [Card] = []
     var body: some View {
         HStack {
-            Rectangle()
-                .fill(network.connectedPeers.isEmpty ? Color.red : Color.purple)
+            Button("Send Test Ping") {
+                connection.sendTestMessage()
+            }
             ForEach(hand) {card in
                 Button(action: {
                     print("\(card.rank) of \(card.suit)")

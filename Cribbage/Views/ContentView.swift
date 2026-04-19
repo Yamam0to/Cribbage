@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject var game = GameState()
-    @StateObject var network = Connection()
+    @EnvironmentObject var connection: Connection
     
     @State private var startButton = true
     @State private var showSlide = false
